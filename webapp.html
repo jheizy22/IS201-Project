@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Run Baseball Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #87CEEB;
+      overflow: hidden;
+    }
+
+    canvas {
+      background: #228B22;
+      display: block;
+      margin: auto;
+      border: 5px solid #fff;
+    }
+
+    #gameInfo {
+      text-align: center;
+      margin-top: 10px;
+      color: #fff;
+    }
+
+    #gameInfo h1 {
+      font-size: 32px;
+    }
+
+    #popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 20px 40px;
+      border-radius: 10px;
+      display: none;
+      z-index: 10;
+      font-size: 24px;
+    }
+
+    #restartBtn, #returnBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #fff;
+      color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameInfo">
+    <h1>Home Run Baseball Game</h1>
+    <p>Press SPACE to swing when the ball gets close!</p>
+    <p>Score: <span id="score">0</span></p>
+    <button id="restartBtn" style="display: none;">Start Over</button>
+    <button id="returnBtn" style="display: none;">Return to Scratch Page</button>
+  </div>
+  <div id="popup">Home Run!</div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const popup = document.getElementById("popup");
+    const restartBtn = document.getElementById("restartBtn");
+    const returnBtn = document.getElementById("returnBtn");
+
+    let score = 0;
+    let pitchCount = 0;
+    const maxPitches = 5;
+    let batSwinging = false;
+    let gameOver = false;
+
+    let ball = {
+      x: 0,
+      y: canvas.height / 2,
+      radius: 10,
+      speed: 5
+    };
+
+    const plateX = 600;
+    const plateY = canvas.height / 2;
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawBat() {
+      if (batSwinging) {
+        ctx.fillStyle = "brown";
+        ctx.fillRect(plateX, plateY - 50, 10, 100);
+      } else {
+        ctx.fillStyle = "brown";
+        ctx.fillRect(plateX - 10, plateY - 10, 50, 5);
+      }
+    }
+
+    function resetBall() {
+      ball.x = 0;
+      ball.y = canvas.height / 2 + (Math.random() * 40 - 20);
+      ball.speed = 6 + Math.random() * 5; // Increased speed between 6 and 11
+    }
+
+    function showPopup(message) {
+      popup.textContent = message;
+      popup.style.display = "block";
+      setTimeout(() => {
+        popup.style.display = "none";
+      }, 1000);
+    }
+
+    function checkHit() {
+      if (batSwinging && Math.abs(ball.x - plateX) < 15 && Math.abs(ball.y - plateY) < 30) {
+        score++;
+        scoreDisplay.textContent = score;
+        showPopup("Home Run!");
+        nextPitch();
+      }
+    }
+
+    function nextPitch() {
+      pitchCount++;
+      if (pitchCount >= maxPitches) {
+        gameOver = true;
+        showPopup("Game Over! Home Runs: " + score + " / " + maxPitches);
+        restartBtn.style.display = "inline-block";
+        returnBtn.style.display = "inline-block";
+      } else {
+        resetBall();
+      }
+    }
+
+    function draw() {
+      if (gameOver) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBall();
+      drawBat();
+      ball.x += ball.speed;
+      if (ball.x > canvas.width) {
+        nextPitch();
+      }
+      checkHit();
+      requestAnimationFrame(draw);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !gameOver) {
+        batSwinging = true;
+        setTimeout(() => {
+          batSwinging = false;
+        }, 200);
+      }
+    });
+
+    restartBtn.addEventListener("click", () => {
+      score = 0;
+      pitchCount = 0;
+      scoreDisplay.textContent = score;
+      gameOver = false;
+      restartBtn.style.display = "none";
+      returnBtn.style.display = "none";
+      resetBall();
+      draw();
+    });
+
+    returnBtn.addEventListener("click", () => {
+      window.location.href ="scratch.html"
+    });
+
+    resetBall();
+    draw();
+  </script>
+</body>
+</html>
